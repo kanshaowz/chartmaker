@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChartMaker - 图表制作</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #0d9488;
+            --primary-dark: #0f766e;
+            --primary-light: #5eead4;
+            --primary-bg: #f0fdfa;
+            --secondary: #14b8a6;
+            --accent: #2dd4bf;
+            --text-dark: #134e4a;
+            --text-light: #5c7c7a;
+            --white: #ffffff;
+            --shadow: 0 10px 40px rgba(13, 148, 136, 0.15);
+            --shadow-hover: 0 20px 60px rgba(13, 148, 136, 0.25);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 50%, #f0f9ff 100%);
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--white);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .logo-text {
+            color: var(--white);
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .language-selector {
+            display: flex;
+            gap: 8px;
+            background: rgba(255,255,255,0.15);
+            padding: 6px;
+            border-radius: 30px;
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn:hover {
+            color: var(--white);
+        }
+
+        .lang-btn.active {
+            background: var(--white);
+            color: var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 3rem 0;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Chart Types */
+        .chart-types {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .type-btn {
+            padding: 1rem 2rem;
+            border: 2px solid var(--primary-light);
+            background: var(--white);
+            color: var(--primary);
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .type-btn:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .type-btn.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+
+        /* App Container */
+        .app-container {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Panel */
+        .panel {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: 2px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+        }
+
+        /* Data Input */
+        .data-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .data-input {
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .data-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .remove-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #fee2e2;
+            color: #ef4444;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .remove-btn:hover {
+            background: #fecaca;
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed var(--primary-light);
+            background: var(--primary-bg);
+            color: var(--primary);
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .add-btn:hover {
+            border-color: var(--primary);
+            background: var(--white);
+        }
+
+        /* Color Picker */
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .color-option {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.active {
+            border-color: var(--text-dark);
+        }
+
+        /* Chart Preview */
+        .chart-preview {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 500px;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+        }
+
+        /* Download Button */
+        .download-btn {
+            margin-top: 2rem;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 25px rgba(13, 148, 136, 0.3);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-bg) 0%, var(--primary-light) 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-desc {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Hidden canvas for download */
+        #downloadCanvas {
+            display: none;
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.6s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">📊</div>
+                <div class="logo-text">ChartMaker</div>
+            </div>
+            <div class="language-selector">
+                <button class="lang-btn" data-lang="en">EN</button>
+                <button class="lang-btn active" data-lang="zh">中文</button>
+                <button class="lang-btn" data-lang="es">ES</button>
+                <button class="lang-btn" data-lang="ja">日本語</button>
+                <button class="lang-btn" data-lang="ko">한국어</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="hero animate-in">
+            <h1 id="heroTitle">轻松创建精美图表</h1>
+            <p id="heroDesc">快速生成柱状图、饼图和折线图，支持多语言界面和一键下载</p>
+        </section>
+
+        <div class="chart-types animate-in">
+            <button class="type-btn active" data-type="bar">
+                <span>📊</span> <span id="labelBar">柱状图</span>
+            </button>
+            <button class="type-btn" data-type="pie">
+                <span>🥧</span> <span id="labelPie">饼图</span>
+            </button>
+            <button class="type-btn" data-type="line">
+                <span>📈</span> <span id="labelLine">折线图</span>
+            </button>
+        </div>
+
+        <div class="app-container animate-in">
+            <aside class="panel">
+                <h2 class="panel-title" id="dataTitle">数据设置</h2>
+                
+                <div class="form-group">
+                    <label class="form-label" id="chartNameLabel">图表标题</label>
+                    <input type="text" class="form-input" id="chartTitle" value="2024年销售数据" placeholder="输入图表标题">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" id="dataLabel">数据项</label>
+                    <div id="dataRows">
+                        <div class="data-row">
+                            <input type="text" class="data-input label-input" value="第一季度" placeholder="标签">
+                            <input type="number" class="data-input value-input" value="120" placeholder="数值">
+                            <button class="remove-btn" onclick="removeRow(this)">×</button>
+                        </div>
+                        <div class="data-row">
+                            <input type="text" class="data-input label-input" value="第二季度" placeholder="标签">
+                            <input type="number" class="data-input value-input" value="190" placeholder="数值">
+                            <button class="remove-btn" onclick="removeRow(this)">×</button>
+                        </div>
+                        <div class="data-row">
+                            <input type="text" class="data-input label-input" value="第三季度" placeholder="标签">
+                            <input type="number" class="data-input value-input" value="150" placeholder="数值">
+                            <button class="remove-btn" onclick="removeRow(this)">×</button>
+                        </div>
+                        <div class="data-row">
+                            <input type="text" class="data-input label-input" value="第四季度" placeholder="标签">
+                            <input type="number" class="data-input value-input" value="240" placeholder="数值">
+                            <button class="remove-btn" onclick="removeRow(this)">×</button>
+                        </div>
+                    </div>
+                    <button class="add-btn" id="addDataBtn" onclick="addRow()">
+                        <span>+</span> <span id="addLabel">添加数据</span>
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" id="colorLabel">配色方案</label>
+                    <div class="color-picker">
+                        <div class="color-option active" style="background: linear-gradient(135deg, #0d9488, #2dd4bf)" data-colors='["#0d9488", "#14b8a6", "#2dd4bf", "#5eead4", "#99f6e4", "#ccfbf1"]'></div>
+                        <div class="color-option" style="background: linear-gradient(135deg, #3b82f6, #06b6d4)" data-colors='["#3b82f6", "#06b6d4", "#0ea5e9", "#38bdf8", "#7dd3fc", "#bae6fd"]'></div>
+                        <div class="color-option" style="background: linear-gradient(135deg, #8b5cf6, #ec4899)" data-colors='["#8b5cf6", "#a855f7", "#c084fc", "#d946ef", "#e879f9", "#f0abfc"]'></div>
+                        <div class="color-option" style="background: linear-gradient(135deg, #f59e0b, #ef4444)" data-colors='["#f59e0b", "#f97316", "#fb923c", "#ef4444", "#f87171", "#fca5a5"]'></div>
+                        <div class="color-option" style="background: linear-gradient(135deg, #10b981, #84cc16)" data-colors='["#10b981", "#22c55e", "#4ade80", "#84cc16", "#a3e635", "#bef264"]'></div>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="chart-preview">
+                <div class="chart-container">
+                    <canvas id="myChart"></canvas>
+                </div>
+                <button class="download-btn" id="downloadBtn" onclick="downloadChart()">
+                    <span>⬇️</span>
+                    <span id="downloadLabel">下载图表</span>
+                </button>
+            </div>
+        </div>
+
+        <section class="features">
+            <div class="feature-card animate-in">
+                <div class="feature-icon">🎨</div>
+                <h3 class="feature-title" id="feat1Title">专业设计</h3>
+                <p class="feature-desc" id="feat1Desc">采用现代青色主题，生成美观专业的数据可视化图表</p>
+            </div>
+            <div class="feature-card animate-in">
+                <div class="feature-icon">🌍</div>
+                <h3 class="feature-title" id="feat2Title">多语言支持</h3>
+                <p class="feature-desc" id="feat2Desc">支持英语、中文、西班牙语、日语和韩语五种语言界面</p>
+            </div>
+            <div class="feature-card animate-in">
+                <div class="feature-icon">⚡</div>
+                <h3 class="feature-title" id="feat3Title">即时生成</h3>
+                <p class="feature-desc" id="feat3Desc">实时预览图表效果，输入数据后立即更新可视化结果</p>
+            </div>
+            <div class="feature-card animate-in">
+                <div class="feature-icon">💾</div>
+                <h3 class="feature-title" id="feat4Title">一键下载</h3>
+                <p class="feature-desc" id="feat4Desc">支持将图表导出为PNG图片，方便在报告和演示中使用</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>© 2024 ChartMaker. Made with 💚 for data visualization.</p>
+    </footer>
+
+    <canvas id="downloadCanvas"></canvas>
+
+    <script>
+        // Translations
+        const translations = {
+            en: {
+                heroTitle: "Create Beautiful Charts Easily",
+                heroDesc: "Quickly generate bar, pie and line charts with multilingual support and one-click download",
+                labelBar: "Bar Chart",
+                labelPie: "Pie Chart",
+                labelLine: "Line Chart",
+                dataTitle: "Data Settings",
+                chartNameLabel: "Chart Title",
+                dataLabel: "Data Items",
+                addLabel: "Add Data",
+                colorLabel: "Color Scheme",
+                downloadLabel: "Download Chart",
+                feat1Title: "Professional Design",
+                feat1Desc: "Modern cyan theme for beautiful and professional data visualization",
+                feat2Title: "Multilingual Support",
+                feat2Desc: "Interface available in English, Chinese, Spanish, Japanese and Korean",
+                feat3Title: "Instant Generation",
+                feat3Desc: "Real-time chart preview with instant updates as you input data",
+                feat4Title: "One-Click Download",
+                feat4Desc: "Export charts as PNG images for easy use in reports and presentations"
+            },
+            zh: {
+                heroTitle: "轻松创建精美图表",
+                heroDesc: "快速生成柱状图、饼图和折线图，支持多语言界面和一键下载",
+                labelBar: "柱状图",
+                labelPie: "饼图",
+                labelLine: "折线图",
+                dataTitle: "数据设置",
+                chartNameLabel: "图表标题",
+                dataLabel: "数据项",
+                addLabel: "添加数据",
+                colorLabel: "配色方案",
+                downloadLabel: "下载图表",
+                feat1Title: "专业设计",
+                feat1Desc: "采用现代青色主题，生成美观专业的数据可视化图表",
+                feat2Title: "多语言支持",
+                feat2Desc: "支持英语、中文、西班牙语、日语和韩语五种语言界面",
+                feat3Title: "即时生成",
+                feat3Desc: "实时预览图表效果，输入数据后立即更新可视化结果",
+                feat4Title: "一键下载",
+                feat4Desc: "支持将图表导出为PNG图片，方便在报告和演示中使用"
+            },
+            es: {
+                heroTitle: "Crea Gráficos Hermosos Fácilmente",
+                heroDesc: "Genera rápidamente gráficos de barras, circulares y de líneas con soporte multilingüe",
+                labelBar: "Gráfico de Barras",
+                labelPie: "Gráfico Circular",
+                labelLine: "Gráfico de Líneas",
+                dataTitle: "Configuración de Datos",
+                chartNameLabel: "Título del Gráfico",
+                dataLabel: "Elementos de Datos",
+                addLabel: "Añadir Dato",
+                colorLabel: "Esquema de Colores",
+                downloadLabel: "Descargar Gráfico",
+                feat1Title: "Diseño Profesional",
+                feat1Desc: "Tema cian moderno para visualización de datos hermosa y profesional",
+                feat2Title: "Soporte Multilingüe",
+                feat2Desc: "Interfaz disponible en inglés, chino, español, japonés y coreano",
+                feat3Title: "Generación Instantánea",
+                feat3Desc: "Vista previa en tiempo real con actualizaciones instantáneas",
+                feat4Title: "Descarga con un Clic",
+                feat4Desc: "Exporta gráficos como imágenes PNG para informes y presentaciones"
+            },
+            ja: {
+                heroTitle: "簡単に美しいチャートを作成",
+                heroDesc: "複数言語対応とワンクリックダウンロードで、棒グラフ・円グラフ・折れ線グラフを素早く生成",
+                labelBar: "棒グラフ",
+                labelPie: "円グラフ",
+                labelLine: "折れ線グラフ",
+                dataTitle: "データ設定",
+                chartNameLabel: "グラフタイトル",
+                dataLabel: "データ項目",
+                addLabel: "データ追加",
+                colorLabel: "配色",
+                downloadLabel: "グラフをダウンロード",
+                feat1Title: "プロフェッショナルデザイン",
+                feat1Desc: "モダンなシアンテーマで美しくプロフェッショナルなデータ可視化",
+                feat2Title: "多言語対応",
+                feat2Desc: "英語、中国語、スペイン語、日本語、韓国語の5言語インターフェース",
+                feat3Title: "即時生成",
+                feat3Desc: "データ入力時にリアルタイムでグラフプレビューを更新",
+                feat4Title: "ワンクリックダウンロード",
+                feat4Desc: "レポートやプレゼンテーションで使用できるPNG画像としてエクスポート"
+            },
+            ko: {
+                heroTitle: "쉽게 아름다운 차트 만들기",
+                heroDesc: "다국어 지원 및 원클릭 다운로드로 막대형, 원형, 꺾은선형 차트를 빠르게 생성",
+                labelBar: "막대형 차트",
+                labelPie: "원형 차트",
+                labelLine: "꺾은선형 차트",
+                dataTitle: "데이터 설정",
+                chartNameLabel: "차트 제목",
+                dataLabel: "데이터 항목",
+                addLabel: "데이터 추가",
+                colorLabel: "색상 구성",
+                downloadLabel: "차트 다운로드",
+                feat1Title: "전문 디자인",
+                feat1Desc: "현대적인 청록색 테마로 아름답고 전문적인 데이터 시각화",
+                feat2Title: "다국어 지원",
+                feat2Desc: "영어, 중국어, 스페인어, 일본어, 한국어 5개 언어 인터페이스",
+                feat3Title: "즉시 생성",
+                feat3Desc: "데이터 입력 시 실시간 차트 미리보기 및 즉시 업데이트",
+                feat4Title: "원클릭 다운로드",
+                feat4Desc: "보고서 및 프레젠테이션에서 사용할 수 있는 PNG 이미지로 낳"
+            }
+        };
+
+        let currentChart = null;
+        let currentType = 'bar';
+        let currentColors = ["#0d9488", "#14b8a6", "#2dd4bf", "#5eead4", "#99f6e4", "#ccfbf1"];
+        let currentLang = 'zh';
+
+        // Language switching
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentLang = btn.dataset.lang;
+                updateLanguage();
+            });
+        });
+
+        function updateLanguage() {
+            const t = translations[currentLang];
+            Object.keys(t).forEach(key => {
+                const el = document.getElementById(key);
+                if (el) el.textContent = t[key];
+            });
+        }
+
+        // Chart type switching
+        document.querySelectorAll('.type-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentType = btn.dataset.type;
+                updateChart();
+            });
+        });
+
+        // Color picker
+        document.querySelectorAll('.color-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                document.querySelectorAll('.color-option').forEach(o => o.classList.remove('active'));
+                opt.classList.add('active');
+                currentColors = JSON.parse(opt.dataset.colors);
+                updateChart();
+            });
+        });
+
+        // Data management
+        function addRow() {
+            const container = document.getElementById('dataRows');
+            const row = document.createElement('div');
+            row.className = 'data-row';
+            row.innerHTML = `
+                <input type="text" class="data-input label-input" value="新数据" placeholder="标签">
+                <input type="number" class="data-input value-input" value="0" placeholder="数值">
+                <button class="remove-btn" onclick="removeRow(this)">×</button>
+            `;
+            container.appendChild(row);
+            attachListeners();
+            updateChart();
+        }
+
+        function removeRow(btn) {
+            const rows = document.querySelectorAll('.data-row');
+            if (rows.length > 1) {
+                btn.parentElement.remove();
+                updateChart();
+            }
+        }
+
+        function attachListeners() {
+            document.querySelectorAll('.data-input, #chartTitle').forEach(input => {
+                input.removeEventListener('input', updateChart);
+                input.addEventListener('input', updateChart);
+            });
+        }
+
+        // Chart update
+        function updateChart() {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const title = document.getElementById('chartTitle').value;
+            
+            const labels = [];
+            const data = [];
+            
+            document.querySelectorAll('.data-row').forEach(row => {
+                const label = row.querySelector('.label-input').value;
+                const value = parseFloat(row.querySelector('.value-input').value) || 0;
+                labels.push(label);
+                data.push(value);
+            });
+
+            if (currentChart) {
+                currentChart.destroy();
+            }
+
+            const config = {
+                type: currentType,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: title,
+                        data: data,
+                        backgroundColor: currentType === 'line' ? currentColors[0] + '40' : currentColors,
+                        borderColor: currentType === 'line' ? currentColors[0] : currentColors.map(c => c),
+                        borderWidth: 2,
+                        fill: currentType === 'line',
+                        tension: currentType === 'line' ? 0.4 : 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title,
+                            font: { size: 18, weight: 'bold' },
+                            color: '#134e4a'
+                        },
+                        legend: {
+                            display: currentType === 'pie',
+                            position: 'bottom',
+                            labels: { color: '#134e4a' }
+                        }
+                    },
+                    scales: currentType === 'pie' ? {} : {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(13, 148, 136, 0.1)' },
+                            ticks: { color: '#5c7c7a' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#5c7c7a' }
+                        }
+                    }
+                }
+            };
+
+            currentChart = new Chart(ctx, config);
+        }
+
+        // Download chart
+        function downloadChart() {
+            const canvas = document.getElementById('myChart');
+            const link = document.createElement('a');
+            link.download = 'chartmaker-chart.png';
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+        }
+
+        // Initialize
+        attachListeners();
+        updateChart();
+    </script>
+</body>
+</html>
